@@ -81,6 +81,8 @@ func (q *queue) ReadContext(ctx context.Context) (PacketInfo, bool) {
 }
 
 func (q *queue) Write(p PacketInfo) bool {
+	// q holds the PacketBuffer.
+	p.Pkt.PreserveObject()
 	wrote := false
 	select {
 	case q.c <- p:
