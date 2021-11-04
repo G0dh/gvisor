@@ -59,13 +59,15 @@ type Marshallable interface {
 	// likely make use of the type of these fields).
 	SizeBytes() int
 
-	// MarshalBytes serializes a copy of a type to dst.
+	// MarshalBytes serializes a copy of a type to dst and returns the remaining
+	// buffer.
 	// Precondition: dst must be at least SizeBytes() in length.
-	MarshalBytes(dst []byte)
+	MarshalBytes(dst []byte) []byte
 
-	// UnmarshalBytes deserializes a type from src.
+	// UnmarshalBytes deserializes a type from src and returns the remaining
+	// buffer.
 	// Precondition: src must be at least SizeBytes() in length.
-	UnmarshalBytes(src []byte)
+	UnmarshalBytes(src []byte) []byte
 
 	// Packed returns true if the marshalled size of the type is the same as the
 	// size it occupies in memory. This happens when the type has no fields
@@ -86,7 +88,7 @@ type Marshallable interface {
 	// return false, MarshalUnsafe should fall back to the safer but slower
 	// MarshalBytes.
 	// Precondition: dst must be at least SizeBytes() in length.
-	MarshalUnsafe(dst []byte)
+	MarshalUnsafe(dst []byte) []byte
 
 	// UnmarshalUnsafe deserializes a type by directly copying to the underlying
 	// memory allocated for the object by the runtime.
@@ -96,7 +98,7 @@ type Marshallable interface {
 	// UnmarshalUnsafe should fall back to the safer but slower unmarshal
 	// mechanism implemented in UnmarshalBytes.
 	// Precondition: src must be at least SizeBytes() in length.
-	UnmarshalUnsafe(src []byte)
+	UnmarshalUnsafe(src []byte) []byte
 
 	// CopyIn deserializes a Marshallable type from a task's memory. This may
 	// only be called from a task goroutine. This is more efficient than calling
@@ -148,13 +150,13 @@ type Marshallable interface {
 // // might be more efficient that repeatedly calling Foo.MarshalUnsafe
 // // over a []Foo in a loop if the type is Packed.
 // // Preconditions: dst must be at least len(src)*Foo.SizeBytes() in length.
-// func MarshalUnsafeFooSlice(src []Foo, dst []byte) (int, error) { ... }
+// func MarshalUnsafeFooSlice(src []Foo, dst []byte) []byte { ... }
 //
 // // UnmarshalUnsafeFooSlice is like Foo.UnmarshalUnsafe, buf for a []Foo. It
 // // might be more efficient that repeatedly calling Foo.UnmarshalUnsafe
 // // over a []Foo in a loop if the type is Packed.
 // // Preconditions: src must be at least len(dst)*Foo.SizeBytes() in length.
-// func UnmarshalUnsafeFooSlice(dst []Foo, src []byte) (int, error) { ... }
+// func UnmarshalUnsafeFooSlice(dst []Foo, src []byte) []byte { ... }
 //
 // // CopyFooSliceIn copies in a slice of Foo objects from the task's memory.
 // func CopyFooSliceIn(cc marshal.CopyContext, addr hostarch.Addr, dst []Foo) (int, error) { ... }
